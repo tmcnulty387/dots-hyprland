@@ -25,7 +25,7 @@ startask () {
   printf '             2. does not handle system-level/hardware stuff like Nvidia drivers\n'
   printf "\e[31m"
 
-  printf "Would you like to create a backup for \"$XDG_CONFIG_HOME\" and \"$HOME/.local/\" folders?\n[y/N]: "
+  printf "Would you like to create a backup for the \"$XDG_CONFIG_HOME\" folder?\n[y/N]: "
   read -p " " backup_confirm
   case $backup_confirm in
     [yY][eE][sS]|[yY])
