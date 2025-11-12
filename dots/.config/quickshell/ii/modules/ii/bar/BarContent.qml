@@ -1,7 +1,9 @@
 import qs.modules.ii.bar.weather
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import qs
 import qs.services
@@ -16,6 +18,41 @@ Item { // Bar content region
     property var brightnessMonitor: Brightness.getMonitorForScreen(screen)
     property real useShortenedForm: (Appearance.sizes.barHellaShortenScreenWidthThreshold >= screen?.width) ? 2 : (Appearance.sizes.barShortenScreenWidthThreshold >= screen?.width) ? 1 : 0
     readonly property int centerSideModuleWidth: (useShortenedForm == 2) ? Appearance.sizes.barCenterSideModuleWidthHellaShortened : (useShortenedForm == 1) ? Appearance.sizes.barCenterSideModuleWidthShortened : Appearance.sizes.barCenterSideModuleWidth
+    readonly property var barWindow: root.QsWindow?.window
+    property string reminderDraft: GlobalStates.barReminderText
+    property bool reminderEditing: false
+
+    Component.onCompleted: reminderDraft = GlobalStates.barReminderText
+
+    function cancelReminderEditing() {
+        reminderDraft = GlobalStates.barReminderText;
+        reminderEditing = false;
+        if (reminderField) {
+            reminderField.deselect();
+            if (reminderField.focus)
+                reminderField.focus = false;
+        }
+    }
+
+    HyprlandFocusGrab {
+        id: reminderFocusGrab
+        windows: barWindow ? [barWindow] : []
+        active: reminderEditing && !!barWindow
+        onCleared: {
+            if (reminderEditing) {
+                root.cancelReminderEditing();
+            }
+        }
+    }
+
+    Connections {
+        target: GlobalStates
+        function onBarReminderTextChanged() {
+            if (!root.reminderEditing) {
+                root.reminderDraft = GlobalStates.barReminderText;
+            }
+        }
+    }
 
     component VerticalBarSeparator: Rectangle {
         Layout.topMargin: Appearance.sizes.baseBarHeight / 3
@@ -63,6 +100,8 @@ Item { // Bar content region
         onScrollUp: root.brightnessMonitor.setBrightness(root.brightnessMonitor.brightness + 0.05)
         onMovedAway: GlobalStates.osdBrightnessOpen = false
         onPressed: event => {
+            if (root.reminderEditing)
+                root.cancelReminderEditing();
             if (event.button === Qt.LeftButton)
                 GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
         }
@@ -159,6 +198,8 @@ Item { // Bar content region
             implicitHeight: rightCenterGroupContent.implicitHeight
 
             onPressed: {
+                if (root.reminderEditing)
+                    root.cancelReminderEditing();
                 GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;
             }
 
@@ -180,6 +221,74 @@ Item { // Bar content region
                 BatteryIndicator {
                     visible: (root.useShortenedForm < 2 && Battery.available)
                     Layout.alignment: Qt.AlignVCenter
+                }
+            }
+        }
+
+        VerticalBarSeparator {
+            visible: Config.options?.bar.borderless
+        }
+
+        BarGroup {
+            id: reminderGroup
+            anchors.verticalCenter: parent.verticalCenter
+            implicitWidth: root.centerSideModuleWidth
+            padding: 6
+
+            TextField {
+                id: reminderField
+                Layout.fillWidth: true
+                placeholderText: Translation.tr("Add reminder...")
+                text: root.reminderDraft
+                horizontalAlignment: Text.AlignHCenter
+                selectByMouse: true
+                inputMethodHints: Qt.ImhNoPredictiveText
+                padding: 6
+                color: activeFocus ? Appearance.m3colors.m3onSurface : Appearance.m3colors.m3onSurfaceVariant
+                renderType: Text.NativeRendering
+                selectedTextColor: Appearance.m3colors.m3onSecondaryContainer
+                selectionColor: Appearance.colors.colSecondaryContainer
+                placeholderTextColor: Appearance.m3colors.m3outline
+                background: null
+                cursorVisible: root.reminderEditing && reminderField.activeFocus
+
+                onActiveFocusChanged: {
+                    if (activeFocus) {
+                        root.reminderEditing = true;
+                        root.reminderDraft = GlobalStates.barReminderText;
+                        reminderField.selectAll();
+                    } else if (root.reminderEditing) {
+                        root.cancelReminderEditing();
+                    }
+                }
+
+                onTextChanged: {
+                    if (root.reminderEditing)
+                        root.reminderDraft = text;
+                }
+
+                Keys.onReturnPressed: reminderField.commitReminderEditing(event);
+                Keys.onEnterPressed: reminderField.commitReminderEditing(event);
+                Keys.onEscapePressed: reminderField.cancelReminderEditing(event);
+                onAccepted: reminderField.commitReminderEditing();
+
+                function commitReminderEditing(event) {
+                    if (!root.reminderEditing)
+                        return;
+                    root.reminderEditing = false;
+                    GlobalStates.barReminderText = text;
+                    root.reminderDraft = GlobalStates.barReminderText;
+                    if (event)
+                        event.accepted = true;
+                    reminderField.focus = false;
+                }
+
+                function cancelReminderEditing(event) {
+                    if (!root.reminderEditing)
+                        return;
+                    root.cancelReminderEditing();
+                    if (event)
+                        event.accepted = true;
                 }
             }
         }
@@ -209,6 +318,8 @@ Item { // Bar content region
         }
         onMovedAway: GlobalStates.osdVolumeOpen = false;
         onPressed: event => {
+            if (root.reminderEditing)
+                root.cancelReminderEditing();
             if (event.button === Qt.LeftButton) {
                 GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;
             }

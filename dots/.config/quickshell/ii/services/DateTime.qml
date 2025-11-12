@@ -19,9 +19,9 @@ Singleton {
         }
     }
     property string time: Qt.locale().toString(clock.date, Config.options?.time.format ?? "hh:mm")
-    property string shortDate: Qt.locale().toString(clock.date, Config.options?.time.shortDateFormat ?? "dd/MM")
-    property string date: Qt.locale().toString(clock.date, Config.options?.time.dateFormat ?? "dddd, dd/MM")
-    property string collapsedCalendarFormat: Qt.locale().toString(clock.date, "dd MMMM yyyy")
+    property string shortDate: Qt.locale().toString(clock.date, Config.options?.time.shortDateFormat ?? "MM/dd")
+    property string date: Qt.locale().toString(clock.date, Config.options?.time.dateFormat ?? "dddd, MM/dd")
+    property string collapsedCalendarFormat: Qt.locale().toString(clock.date, "MMMM dd yyyy")
     property string uptime: "0h, 0m"
 
     Timer {
