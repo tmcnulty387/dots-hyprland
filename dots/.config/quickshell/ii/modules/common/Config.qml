@@ -80,6 +80,7 @@ Singleton {
             property list<string> enabledPanels: [
                 "iiBar", "iiBackground", "iiCheatsheet", "iiDock", "iiLock", "iiMediaControls", "iiNotificationPopup", "iiOnScreenDisplay", "iiOnScreenKeyboard", "iiOverlay", "iiOverview", "iiPolkit", "iiRegionSelector", "iiReloadPopup", "iiScreenCorners", "iiSessionScreen", "iiSidebarLeft", "iiSidebarRight", "iiVerticalBar", "iiWallpaperSelector"
             ]
+            property string panelFamily: "ii" // "ii", "w"
 
             property JsonObject appearance: JsonObject {
                 property bool extraBackgroundTint: true
@@ -133,7 +134,8 @@ Singleton {
                         property string placementStrategy: "leastBusy" // "free", "leastBusy", "mostBusy"
                         property real x: 100
                         property real y: 100
-                        property string style: "cookie" // Options: "cookie", "digital"
+                        property string style: "cookie"        // Options: "cookie", "digital"
+                        property string styleLocked: "cookie"  // Options: "cookie", "digital"
                         property JsonObject cookie: JsonObject {
                             property int sides: 14
                             property string dialNumberStyle: "full"   // Options: "dots" , "numbers", "full" , "none"
@@ -237,6 +239,9 @@ Singleton {
                     property JsonObject notifications: JsonObject {
                         property bool showUnreadCount: false
                     }
+                }
+                property JsonObject tooltips: JsonObject {
+                    property bool clickToShow: false
                 }
             }
 
@@ -484,8 +489,9 @@ Singleton {
             property JsonObject time: JsonObject {
                 // https://doc.qt.io/qt-6/qtime.html#toString
                 property string format: "hh:mm"
-                property string shortDateFormat: "MM/dd"
-                property string dateFormat: "ddd, MM/dd"
+                property string shortDateFormat: "dd/MM"
+                property string dateWithYearFormat: "MM/dd/yyyy"
+                property string dateFormat: "ddd, dd/MM"
                 property JsonObject pomodoro: JsonObject {
                     property int breakTime: 300
                     property int cyclesBeforeLongBreak: 4
@@ -517,6 +523,13 @@ Singleton {
                     property list<string> networkNameKeywords: ["airport", "cafe", "college", "company", "eduroam", "free", "guest", "public", "school", "university"]
                     property list<string> fileKeywords: []
                     property list<string> linkKeywords: []
+                }
+            }
+
+            property JsonObject waffles: JsonObject {
+                property JsonObject bar: JsonObject {
+                    property bool bottom: true
+                    property bool leftAlignApps: false
                 }
             }
         }
