@@ -122,7 +122,7 @@ ContentPage {
             }
         }
     }
-    
+
     ContentSection {
         icon: "language"
         title: Translation.tr("Language")
@@ -131,13 +131,12 @@ ContentPage {
             title: Translation.tr("Interface Language")
             tooltip: Translation.tr("Select the language for the user interface.\n\"Auto\" will use your system's locale.")
 
-            ConfigSelectionArray {
+            StyledComboBox {
                 id: languageSelector
-                currentValue: Config.options.language.ui
-                onSelected: newValue => {
-                    Config.options.language.ui = newValue;
-                }
-                options: [
+                buttonIcon: "language"
+                textRole: "displayName"
+
+                model: [
                     {
                         displayName: Translation.tr("Auto (System)"),
                         value: "auto"
@@ -147,8 +146,16 @@ ContentPage {
                             displayName: lang,
                             value: lang
                         };
-                    })
-                ]
+                    })]
+
+                currentIndex: {
+                    const index = model.findIndex(item => item.value === Config.options.language.ui);
+                    return index !== -1 ? index : 0;
+                }
+
+                onActivated: index => {
+                    Config.options.language.ui = model[index].value;
+                }
             }
         }
     }
@@ -176,7 +183,7 @@ ContentPage {
             }
         }
     }
-    
+
     ContentSection {
         icon: "nest_clock_farsight_analog"
         title: Translation.tr("Time")
@@ -207,7 +214,6 @@ ContentPage {
                     }
 
                     Config.options.time.format = newValue;
-                    
                 }
                 options: [
                     {
