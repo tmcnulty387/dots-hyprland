@@ -11,6 +11,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SHELL_CONFIG_FILE="$XDG_CONFIG_HOME/illogical-impulse/config.json"
 MATUGEN_DIR="$XDG_CONFIG_HOME/matugen"
 terminalscheme="$SCRIPT_DIR/terminal/scheme-base.json"
+# Default wallpapers to pair with theme toggles
+LIGHT_MODE_WALLPAPER="$HOME/Pictures/favs/a_snowy_mountain_tops_with_a_grey_sky.jpg"
+DARK_MODE_WALLPAPER="$HOME/Pictures/favs/a_city_at_night_with_lights.jpg"
 
 handle_kde_material_you_colors() {
     # Check if Qt app theming is enabled in config
@@ -358,6 +361,18 @@ main() {
                 ;;
         esac
     done
+
+    # When toggling theme (mode + --noswitch), use the requested default wallpapers
+    if [[ -n "$mode_flag" && -n "$noswitch_flag" ]]; then
+        case "$mode_flag" in
+            dark)
+                [[ -f "$DARK_MODE_WALLPAPER" ]] && imgpath="$DARK_MODE_WALLPAPER"
+                ;;
+            light)
+                [[ -f "$LIGHT_MODE_WALLPAPER" ]] && imgpath="$LIGHT_MODE_WALLPAPER"
+                ;;
+        esac
+    fi
 
     # If type_flag is not set, get it from config
     if [[ -z "$type_flag" ]]; then
