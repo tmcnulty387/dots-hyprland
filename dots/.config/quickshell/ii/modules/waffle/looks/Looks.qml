@@ -17,8 +17,8 @@ Singleton {
     property string iconsPath: `${Directories.assetsPath}/icons/fluent`
     property bool dark: Appearance.m3colors.darkmode
 
-    property real backgroundTransparency: 0.13
-    property real panelBackgroundTransparency: 0.12
+    property real backgroundTransparency: 0.16
+    property real panelBackgroundTransparency: 0.14
     property real panelLayerTransparency: root.dark ? 0.9 : 0.7
     property real contentTransparency: root.dark ? 0.87 : 0.5
     function applyBackgroundTransparency(col) {
@@ -64,7 +64,7 @@ Singleton {
         property color bg0: "#1C1C1C"
         property color bg0Border: "#404040"
         property color bg1Base: "#2C2C2C"
-        property color bg1: "#a8a8a8"
+        property color bg1: '#9f9f9f'
         property color bg1Hover: "#b3b3b3"
         property color bg1Active: '#727272'
         property color bg1Border: '#bebebe'
@@ -125,6 +125,7 @@ Singleton {
         property color accentUnfocused: root.dark ? root.darkColors.accentUnfocused : root.lightColors.accentUnfocused
         property color accentFg: ColorUtils.isDark(accent) ? "#FFFFFF" : "#000000"
         property color selection: Appearance.colors.colPrimaryContainer
+        property color selectionFg: Appearance.colors.colOnPrimaryContainer
     }
 
     radius: QtObject {
@@ -151,6 +152,7 @@ Singleton {
             property real normal: 11
             property real large: 13
             property real larger: 15
+            property real xlarger: 17
         }
     }
 
