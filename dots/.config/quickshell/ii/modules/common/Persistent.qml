@@ -131,6 +131,10 @@ Singleton {
                 }
             }
 
+            property JsonObject popouts: JsonObject {
+                property JsonObject instances: JsonObject { }
+            }
+
             property JsonObject timer: JsonObject {
                 property JsonObject pomodoro: JsonObject {
                     property bool running: false

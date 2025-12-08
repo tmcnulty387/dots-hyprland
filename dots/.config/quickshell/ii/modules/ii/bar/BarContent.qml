@@ -150,14 +150,27 @@ Item { // Bar content region
             anchors.verticalCenter: parent.verticalCenter
             implicitWidth: root.centerSideModuleWidth
 
-            Resources {
-                alwaysShowAllResources: root.useShortenedForm === 2
+            PopoutWrapper {
+                popoutId: "bar.resources"
                 Layout.fillWidth: root.useShortenedForm === 2
+                contentComponent: Component {
+                    Resources {
+                        alwaysShowAllResources: root.useShortenedForm === 2
+                        Layout.fillWidth: root.useShortenedForm === 2
+                    }
+                }
             }
 
-            Media {
+            PopoutWrapper {
+                popoutId: "bar.media"
                 visible: root.useShortenedForm < 2
                 Layout.fillWidth: true
+                contentComponent: Component {
+                    Media {
+                        visible: root.useShortenedForm < 2
+                        Layout.fillWidth: true
+                    }
+                }
             }
         }
 
@@ -165,22 +178,27 @@ Item { // Bar content region
             visible: Config.options?.bar.borderless
         }
 
-        BarGroup {
-            id: middleCenterGroup
-            anchors.verticalCenter: parent.verticalCenter
-            padding: workspacesWidget.widgetPadding
+        PopoutWrapper {
+            popoutId: "bar.workspaces"
+            contentComponent: Component {
+                BarGroup {
+                    id: middleCenterGroup
+                    anchors.verticalCenter: parent.verticalCenter
+                    padding: workspacesWidget.widgetPadding
 
-            Workspaces {
-                id: workspacesWidget
-                Layout.fillHeight: true
-                MouseArea {
-                    // Right-click to toggle overview
-                    anchors.fill: parent
-                    acceptedButtons: Qt.RightButton
+                    Workspaces {
+                        id: workspacesWidget
+                        Layout.fillHeight: true
+                        MouseArea {
+                            // Right-click to toggle overview
+                            anchors.fill: parent
+                            acceptedButtons: Qt.RightButton
 
-                    onPressed: event => {
-                        if (event.button === Qt.RightButton) {
-                            GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
+                            onPressed: event => {
+                                if (event.button === Qt.RightButton) {
+                                    GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
+                                }
+                            }
                         }
                     }
                 }
@@ -191,36 +209,43 @@ Item { // Bar content region
             visible: Config.options?.bar.borderless
         }
 
-        MouseArea {
-            id: rightCenterGroup
+        PopoutWrapper {
+            popoutId: "bar.clock"
             anchors.verticalCenter: parent.verticalCenter
             implicitWidth: root.centerSideModuleWidth
-            implicitHeight: rightCenterGroupContent.implicitHeight
+            contentComponent: Component {
+                MouseArea {
+                    id: rightCenterGroup
+                    anchors.verticalCenter: parent.verticalCenter
+                    implicitWidth: root.centerSideModuleWidth
+                    implicitHeight: rightCenterGroupContent.implicitHeight
 
-            onPressed: {
-                if (root.reminderEditing)
-                    root.cancelReminderEditing();
-                GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;
-            }
+                    onPressed: {
+                        if (root.reminderEditing)
+                            root.cancelReminderEditing();
+                        GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;
+                    }
 
-            BarGroup {
-                id: rightCenterGroupContent
-                anchors.fill: parent
+                    BarGroup {
+                        id: rightCenterGroupContent
+                        anchors.fill: parent
 
-                ClockWidget {
-                    showDate: (Config.options.bar.verbose && root.useShortenedForm < 2)
-                    Layout.alignment: Qt.AlignVCenter
-                    Layout.fillWidth: true
-                }
+                        ClockWidget {
+                            showDate: (Config.options.bar.verbose && root.useShortenedForm < 2)
+                            Layout.alignment: Qt.AlignVCenter
+                            Layout.fillWidth: true
+                        }
 
-                UtilButtons {
-                    visible: (Config.options.bar.verbose && root.useShortenedForm === 0)
-                    Layout.alignment: Qt.AlignVCenter
-                }
+                        UtilButtons {
+                            visible: (Config.options.bar.verbose && root.useShortenedForm === 0)
+                            Layout.alignment: Qt.AlignVCenter
+                        }
 
-                BatteryIndicator {
-                    visible: (root.useShortenedForm < 2 && Battery.available)
-                    Layout.alignment: Qt.AlignVCenter
+                        BatteryIndicator {
+                            visible: (root.useShortenedForm < 2 && Battery.available)
+                            Layout.alignment: Qt.AlignVCenter
+                        }
+                    }
                 }
             }
         }

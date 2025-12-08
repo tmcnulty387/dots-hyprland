@@ -312,6 +312,12 @@ Singleton {
                     property bool enable: false
                 }
             }
+            property JsonObject popouts: JsonObject {
+                property real defaultOpacity: 0.6
+                property real minOpacity: 0.2
+                property real maxOpacity: 1.0
+                property real scrollStep: 0.05
+            }
 
             property JsonObject language: JsonObject {
                 property string ui: "auto" // UI language. "auto" for system locale, or specific language code like "zh_CN", "en_US"
