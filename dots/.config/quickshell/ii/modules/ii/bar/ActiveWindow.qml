@@ -11,10 +11,15 @@ Item {
     id: root
     readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.QsWindow.window?.screen)
     readonly property Toplevel activeWindow: ToplevelManager.activeToplevel
+    readonly property int activeWorkspaceId: Wm.isHyprland
+        ? (monitor?.activeWorkspace?.id ?? 1)
+        : ((Wm.focusedWorkspaceNum > 0 ? Wm.focusedWorkspaceNum : 1))
 
     property string activeWindowAddress: `0x${activeWindow?.HyprlandToplevel?.address}`
-    property bool focusingThisMonitor: HyprlandData.activeWorkspace?.monitor == monitor?.name
-    property var biggestWindow: HyprlandData.biggestWindowForWorkspace(HyprlandData.monitors[root.monitor?.id]?.activeWorkspace.id)
+    property bool focusingThisMonitor: Wm.isHyprland
+        ? (HyprlandData.activeWorkspace?.monitor == monitor?.name)
+        : ((root.QsWindow.window?.screen?.name ?? "") === (Wm.focusedOutputName || Quickshell.screens[0]?.name || ""))
+    property var biggestWindow: HyprlandData.biggestWindowForWorkspace(activeWorkspaceId)
 
     implicitWidth: colLayout.implicitWidth
 
@@ -44,7 +49,7 @@ Item {
             elide: Text.ElideRight
             text: root.focusingThisMonitor && root.activeWindow?.activated && root.biggestWindow ? 
                 root.activeWindow?.title :
-                (root.biggestWindow?.title) ?? `${Translation.tr("Workspace")} ${monitor?.activeWorkspace?.id ?? 1}`
+                (root.biggestWindow?.title) ?? `${Translation.tr("Workspace")} ${activeWorkspaceId}`
         }
 
     }

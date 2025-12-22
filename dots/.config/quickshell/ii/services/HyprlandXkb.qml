@@ -11,6 +11,7 @@ import qs.modules.common
  */
 Singleton {
     id: root
+    readonly property bool supported: (Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") || "").length > 0
     // You can read these
     property list<string> layoutCodes: []
     property var cachedLayoutCodes: ({})
@@ -75,16 +76,21 @@ Singleton {
     // Find out available layouts and current active layout. Should only be necessary on init
     Process {
         id: fetchLayoutsProc
-        running: true
+        running: root.supported
         command: ["hyprctl", "-j", "devices"]
 
         stdout: StdioCollector {
             id: devicesCollector
             onStreamFinished: {
-                const parsedOutput = JSON.parse(devicesCollector.text);
-                const hyprlandKeyboard = parsedOutput["keyboards"].find(kb => kb.main === true);
-                root.layoutCodes = hyprlandKeyboard["layout"].split(",");
-                root.currentLayoutName = hyprlandKeyboard["active_keymap"];
+                try {
+                    const parsedOutput = JSON.parse(devicesCollector.text);
+                    const hyprlandKeyboard = parsedOutput["keyboards"].find(kb => kb.main === true);
+                    root.layoutCodes = hyprlandKeyboard["layout"].split(",");
+                    root.currentLayoutName = hyprlandKeyboard["active_keymap"];
+                } catch (e) {
+                    root.layoutCodes = []
+                    root.currentLayoutName = ""
+                }
                 // console.log("[HyprlandXkb] Fetched | Layouts (multiple: " + (root.layoutCodes.length > 1) + "): "
                 //     + root.layoutCodes.join(", ") + " | Active: " + root.currentLayoutName);
             }
@@ -94,6 +100,7 @@ Singleton {
     // Update the layout name when it changes
     Connections {
         target: Hyprland
+        enabled: root.supported
         function onRawEvent(event) {
             if (event.name === "activelayout") {
                 if (root.needsLayoutRefresh) {

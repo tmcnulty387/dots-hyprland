@@ -12,7 +12,7 @@ import qs.modules.waffle.looks
 Scope {
     id: root
 
-    property var focusedScreen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name)
+    property var focusedScreen: Quickshell.screens.find(s => s.name === (Wm.focusedOutputName || Quickshell.screens[0]?.name))
     property string currentIndicator: "volume"
     property var indicators: [
         {

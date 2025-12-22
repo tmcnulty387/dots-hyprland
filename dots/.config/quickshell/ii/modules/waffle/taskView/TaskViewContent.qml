@@ -254,7 +254,7 @@ Rectangle {
                 spacing: 4
 
                 function reposition() {
-                    positionViewAtIndex(HyprlandData.activeWorkspace.id - 1, ListView.Contain);
+                    positionViewAtIndex((HyprlandData.activeWorkspace?.id ?? 1) - 1, ListView.Contain);
                 }
 
                 Connections {

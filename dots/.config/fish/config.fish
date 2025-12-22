@@ -29,5 +29,7 @@ set -x LAN_MOUSE_LOG_LEVEL debug
 
 alias ls 'eza --icons'
 alias clear "printf '\033[2J\033[3J\033[1;1H'"
-    
-exec zsh
+if status is-interactive
+    exec zsh
+end
+

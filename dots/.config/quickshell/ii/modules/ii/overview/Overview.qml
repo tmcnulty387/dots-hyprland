@@ -22,7 +22,7 @@ Scope {
             required property var modelData
             property string searchingText: ""
             readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
-            property bool monitorIsFocused: (Hyprland.focusedMonitor?.id == monitor?.id)
+            property bool monitorIsFocused: (modelData?.name ?? "") === (Wm.focusedOutputName || Quickshell.screens[0]?.name || "")
             screen: modelData
             visible: GlobalStates.overviewOpen
 
@@ -101,10 +101,10 @@ Scope {
                         GlobalStates.overviewOpen = false;
                     } else if (event.key === Qt.Key_Left) {
                         if (!root.searchingText)
-                            Hyprland.dispatch("workspace r-1");
+                            Wm.workspacePrevOnOutput();
                     } else if (event.key === Qt.Key_Right) {
                         if (!root.searchingText)
-                            Hyprland.dispatch("workspace r+1");
+                            Wm.workspaceNextOnOutput();
                     }
                 }
 
@@ -119,7 +119,7 @@ Scope {
                 Loader {
                     id: overviewLoader
                     anchors.horizontalCenter: parent.horizontalCenter
-                    active: GlobalStates.overviewOpen && (Config?.options.overview.enable ?? true)
+                    active: GlobalStates.overviewOpen && (Config?.options.overview.enable ?? true) && Wm.isHyprland
                     sourceComponent: OverviewWidget {
                         panelWindow: root
                         visible: (root.searchingText == "")
@@ -134,9 +134,10 @@ Scope {
             GlobalStates.overviewOpen = false;
             return;
         }
+        const focusedName = Wm.focusedOutputName || Quickshell.screens[0]?.name || "";
         for (let i = 0; i < overviewVariants.instances.length; i++) {
             let panelWindow = overviewVariants.instances[i];
-            if (panelWindow.modelData.name == Hyprland.focusedMonitor.name) {
+            if (panelWindow.modelData.name == focusedName) {
                 overviewScope.dontAutoCancelSearch = true;
                 panelWindow.setSearchingText(Config.options.search.prefix.clipboard);
                 GlobalStates.overviewOpen = true;
@@ -150,9 +151,10 @@ Scope {
             GlobalStates.overviewOpen = false;
             return;
         }
+        const focusedName = Wm.focusedOutputName || Quickshell.screens[0]?.name || "";
         for (let i = 0; i < overviewVariants.instances.length; i++) {
             let panelWindow = overviewVariants.instances[i];
-            if (panelWindow.modelData.name == Hyprland.focusedMonitor.name) {
+            if (panelWindow.modelData.name == focusedName) {
                 overviewScope.dontAutoCancelSearch = true;
                 panelWindow.setSearchingText(Config.options.search.prefix.emojis);
                 GlobalStates.overviewOpen = true;
@@ -190,14 +192,6 @@ Scope {
 
         onPressed: {
             GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
-        }
-    }
-    GlobalShortcut {
-        name: "overviewWorkspacesClose"
-        description: "Closes overview on press"
-
-        onPressed: {
-            GlobalStates.overviewOpen = false;
         }
     }
     GlobalShortcut {

@@ -62,10 +62,71 @@ post_process() {
     "$SCRIPT_DIR/code/material-code-set-color.sh" &
 }
 
+get_max_output_width_height() {
+    if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]] && command -v hyprctl >/dev/null 2>&1; then
+        hyprctl monitors -j | jq -r '([.[].width] | max) as $w | ([.[].height] | max) as $h | "\($w) \($h)"'
+        return 0
+    fi
+    if [[ -n "${SWAYSOCK:-}" ]] && command -v swaymsg >/dev/null 2>&1; then
+        swaymsg -t get_outputs -r | jq -r '
+            [ .[] | select(.active == true) | (.current_mode.width // .rect.width) ] | max as $w |
+            [ .[] | select(.active == true) | (.current_mode.height // .rect.height) ] | max as $h |
+            "\($w) \($h)"'
+        return 0
+    fi
+    if command -v xrandr >/dev/null 2>&1; then
+        xrandr --query | awk '
+            / connected/ && $3 ~ /^[0-9]+x[0-9]+\\+/ {
+                split($3, a, /[x+]/);
+                if (a[1] > mw) mw = a[1];
+                if (a[2] > mh) mh = a[2];
+            }
+            END { printf "%d %d\\n", mw+0, mh+0 }'
+        return 0
+    fi
+    echo "0 0"
+}
+
+get_min_output_width_height() {
+    if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]] && command -v hyprctl >/dev/null 2>&1; then
+        hyprctl monitors -j | jq -r '([.[].width] | min) as $w | ([.[].height] | min) as $h | "\($w) \($h)"'
+        return 0
+    fi
+    if [[ -n "${SWAYSOCK:-}" ]] && command -v swaymsg >/dev/null 2>&1; then
+        swaymsg -t get_outputs -r | jq -r '
+            [ .[] | select(.active == true) | (.current_mode.width // .rect.width) ] | min as $w |
+            [ .[] | select(.active == true) | (.current_mode.height // .rect.height) ] | min as $h |
+            "\($w) \($h)"'
+        return 0
+    fi
+    if command -v xrandr >/dev/null 2>&1; then
+        xrandr --query | awk '
+            / connected/ && $3 ~ /^[0-9]+x[0-9]+\\+/ {
+                split($3, a, /[x+]/);
+                if (mw == 0 || a[1] < mw) mw = a[1];
+                if (mh == 0 || a[2] < mh) mh = a[2];
+            }
+            END { printf "%d %d\\n", mw+0, mh+0 }'
+        return 0
+    fi
+    echo "0 0"
+}
+
+list_active_outputs() {
+    if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]] && command -v hyprctl >/dev/null 2>&1; then
+        hyprctl monitors -j | jq -r '.[] | .name'
+        return 0
+    fi
+    if [[ -n "${SWAYSOCK:-}" ]] && command -v swaymsg >/dev/null 2>&1; then
+        swaymsg -t get_outputs -r | jq -r '.[] | select(.active == true) | .name'
+        return 0
+    fi
+    return 1
+}
+
 check_and_prompt_upscale() {
     local img="$1"
-    min_width_desired="$(hyprctl monitors -j | jq '([.[].width] | max)' | xargs)" # max monitor width
-    min_height_desired="$(hyprctl monitors -j | jq '([.[].height] | max)' | xargs)" # max monitor height
+    read -r min_width_desired min_height_desired < <(get_max_output_width_height)
 
     if command -v identify &>/dev/null && [ -f "$img" ]; then
         local img_width img_height
@@ -127,7 +188,14 @@ create_restore_script() {
 
 pkill -f -9 mpvpaper
 
-for monitor in \$(hyprctl monitors -j | jq -r '.[] | .name'); do
+monitors=""
+if [[ -n "\${HYPRLAND_INSTANCE_SIGNATURE:-}" ]] && command -v hyprctl >/dev/null 2>&1; then
+    monitors="\$(hyprctl monitors -j | jq -r '.[] | .name')"
+elif [[ -n "\${SWAYSOCK:-}" ]] && command -v swaymsg >/dev/null 2>&1; then
+    monitors="\$(swaymsg -t get_outputs -r | jq -r '.[] | select(.active == true) | .name')"
+fi
+
+for monitor in \$monitors; do
     mpvpaper -o "$VIDEO_OPTS" "\$monitor" "$video_path" &
     sleep 0.1
 done
@@ -164,13 +232,6 @@ switch() {
     type_flag="$3"
     color_flag="$4"
     color="$5"
-
-    read scale screenx screeny screensizey < <(hyprctl monitors -j | jq '.[] | select(.focused) | .scale, .x, .y, .height' | xargs)
-    cursorposx=$(hyprctl cursorpos -j | jq '.x' 2>/dev/null) || cursorposx=960
-    cursorposx=$(bc <<< "scale=0; ($cursorposx - $screenx) * $scale / 1")
-    cursorposy=$(hyprctl cursorpos -j | jq '.y' 2>/dev/null) || cursorposy=540
-    cursorposy=$(bc <<< "scale=0; ($cursorposy - $screeny) * $scale / 1")
-    cursorposy_inverted=$((screensizey - cursorposy))
 
     if [[ "$color_flag" == "1" ]]; then
         matugen_args=(color hex "$color")
@@ -217,7 +278,7 @@ switch() {
 
             # Set video wallpaper
             local video_path="$imgpath"
-            monitors=$(hyprctl monitors -j | jq -r '.[] | .name')
+            monitors="$(list_active_outputs || true)"
             for monitor in $monitors; do
                 mpvpaper -o "$VIDEO_OPTS" "$monitor" "$video_path" &
                 sleep 0.1
@@ -300,8 +361,7 @@ switch() {
     deactivate
 
     # Pass screen width, height, and wallpaper path to post_process
-    max_width_desired="$(hyprctl monitors -j | jq '([.[].width] | min)' | xargs)"
-    max_height_desired="$(hyprctl monitors -j | jq '([.[].height] | min)' | xargs)"
+    read -r max_width_desired max_height_desired < <(get_min_output_width_height)
     post_process "$max_width_desired" "$max_height_desired" "$imgpath"
 }
 

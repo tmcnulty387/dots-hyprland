@@ -26,7 +26,13 @@ Singleton {
 
     function logout() {
         closeAllWindows();
-        Quickshell.execDetached(["pkill", "-i", "Hyprland"]);
+        if (Wm.isHyprland) {
+            Quickshell.execDetached(["pkill", "-i", "Hyprland"]);
+        } else if (Wm.isSway) {
+            Quickshell.execDetached(["swaymsg", "exit"]);
+        } else if (Wm.isI3) {
+            Quickshell.execDetached(["i3-msg", "exit"]);
+        }
     }
 
     function launchTaskManager() {

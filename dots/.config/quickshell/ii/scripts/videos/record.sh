@@ -20,7 +20,15 @@ getaudiooutput() {
     pactl list sources | grep 'Name' | grep 'monitor' | cut -d ' ' -f2
 }
 getactivemonitor() {
-    hyprctl monitors -j | jq -r '.[] | select(.focused == true) | .name'
+    if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]] && command -v hyprctl >/dev/null 2>&1; then
+        hyprctl monitors -j | jq -r '.[] | select(.focused == true) | .name'
+        return
+    fi
+    if [[ -n "${SWAYSOCK:-}" ]] && command -v swaymsg >/dev/null 2>&1; then
+        swaymsg -t get_outputs -r | jq -r '.[] | select(.focused == true) | .name'
+        return
+    fi
+    echo ""
 }
 
 mkdir -p "$RECORDING_DIR"
@@ -53,9 +61,19 @@ else
     if [[ $FULLSCREEN_FLAG -eq 1 ]]; then
         notify-send "Starting recording" 'recording_'"$(getdate)"'.mp4' -a 'Recorder' & disown
         if [[ $SOUND_FLAG -eq 1 ]]; then
-            wf-recorder -o "$(getactivemonitor)" --pixel-format yuv420p -f './recording_'"$(getdate)"'.mp4' -t --audio="$(getaudiooutput)"
+            active_monitor="$(getactivemonitor)"
+            if [[ -n "$active_monitor" ]]; then
+                wf-recorder -o "$active_monitor" --pixel-format yuv420p -f './recording_'"$(getdate)"'.mp4' -t --audio="$(getaudiooutput)"
+            else
+                wf-recorder --pixel-format yuv420p -f './recording_'"$(getdate)"'.mp4' -t --audio="$(getaudiooutput)"
+            fi
         else
-            wf-recorder -o "$(getactivemonitor)" --pixel-format yuv420p -f './recording_'"$(getdate)"'.mp4' -t
+            active_monitor="$(getactivemonitor)"
+            if [[ -n "$active_monitor" ]]; then
+                wf-recorder -o "$active_monitor" --pixel-format yuv420p -f './recording_'"$(getdate)"'.mp4' -t
+            else
+                wf-recorder --pixel-format yuv420p -f './recording_'"$(getdate)"'.mp4' -t
+            fi
         fi
     else
         # If a manual region was provided via --region, use it; otherwise run slurp as before.

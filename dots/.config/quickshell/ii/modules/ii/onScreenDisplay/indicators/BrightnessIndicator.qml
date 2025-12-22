@@ -6,7 +6,7 @@ import qs.modules.ii.onScreenDisplay
 
 OsdValueIndicator {
     id: root
-    property var focusedScreen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name)
+    property var focusedScreen: Quickshell.screens.find(s => s.name === (Wm.focusedOutputName || Quickshell.screens[0]?.name))
     property var brightnessMonitor: Brightness.getMonitorForScreen(focusedScreen)
 
     icon: Hyprsunset.active ? "routine" : "light_mode"

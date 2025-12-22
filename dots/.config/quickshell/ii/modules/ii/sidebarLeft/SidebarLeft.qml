@@ -54,6 +54,10 @@ Scope { // Scope
     }
 
     function togglePin() {
+        if (!Wm.isHyprland) {
+            root.pin = !root.pin;
+            return;
+        }
         if (!root.pin) pinWithFunnyHyprlandWorkaroundProc.doIt()
         else root.pin = !root.pin;
     }
