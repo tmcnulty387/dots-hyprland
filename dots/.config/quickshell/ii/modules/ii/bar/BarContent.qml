@@ -1,9 +1,7 @@
 import qs.modules.ii.bar.weather
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import qs
 import qs.services
@@ -18,41 +16,6 @@ Item { // Bar content region
     property var brightnessMonitor: Brightness.getMonitorForScreen(screen)
     property real useShortenedForm: (Appearance.sizes.barHellaShortenScreenWidthThreshold >= screen?.width) ? 2 : (Appearance.sizes.barShortenScreenWidthThreshold >= screen?.width) ? 1 : 0
     readonly property int centerSideModuleWidth: (useShortenedForm == 2) ? Appearance.sizes.barCenterSideModuleWidthHellaShortened : (useShortenedForm == 1) ? Appearance.sizes.barCenterSideModuleWidthShortened : Appearance.sizes.barCenterSideModuleWidth
-    readonly property var barWindow: root.QsWindow?.window
-    property string reminderDraft: GlobalStates.barReminderText
-    property bool reminderEditing: false
-
-    Component.onCompleted: reminderDraft = GlobalStates.barReminderText
-
-    function cancelReminderEditing() {
-        reminderDraft = GlobalStates.barReminderText;
-        reminderEditing = false;
-        if (reminderField) {
-            reminderField.deselect();
-            if (reminderField.focus)
-                reminderField.focus = false;
-        }
-    }
-
-    HyprlandFocusGrab {
-        id: reminderFocusGrab
-        windows: barWindow ? [barWindow] : []
-        active: reminderEditing && !!barWindow
-        onCleared: {
-            if (reminderEditing) {
-                root.cancelReminderEditing();
-            }
-        }
-    }
-
-    Connections {
-        target: GlobalStates
-        function onBarReminderTextChanged() {
-            if (!root.reminderEditing) {
-                root.reminderDraft = GlobalStates.barReminderText;
-            }
-        }
-    }
 
     component VerticalBarSeparator: Rectangle {
         Layout.topMargin: Appearance.sizes.baseBarHeight / 3
@@ -100,8 +63,6 @@ Item { // Bar content region
         onScrollUp: root.brightnessMonitor.setBrightness(root.brightnessMonitor.brightness + 0.05)
         onMovedAway: GlobalStates.osdBrightnessOpen = false
         onPressed: event => {
-            if (root.reminderEditing)
-                root.cancelReminderEditing();
             if (event.button === Qt.LeftButton)
                 GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
         }
@@ -150,103 +111,14 @@ Item { // Bar content region
             anchors.verticalCenter: parent.verticalCenter
             implicitWidth: root.centerSideModuleWidth
 
-            PopoutWrapper {
-                popoutId: "bar.resources"
+            Resources {
+                alwaysShowAllResources: root.useShortenedForm === 2
                 Layout.fillWidth: root.useShortenedForm === 2
-                contentComponent: Component {
-                    Resources {
-                        alwaysShowAllResources: root.useShortenedForm === 2
-                        Layout.fillWidth: root.useShortenedForm === 2
-                    }
-                }
             }
 
-            PopoutWrapper {
-                popoutId: "bar.media"
+            Media {
                 visible: root.useShortenedForm < 2
                 Layout.fillWidth: true
-                contentComponent: Component {
-                    Media {
-                        visible: root.useShortenedForm < 2
-                        Layout.fillWidth: true
-                    }
-                }
-            }
-        }
-
-        VerticalBarSeparator {
-            visible: Config.options?.bar.borderless
-        }
-
-        PopoutWrapper {
-            popoutId: "bar.workspaces"
-            contentComponent: Component {
-                BarGroup {
-                    id: middleCenterGroup
-                    anchors.verticalCenter: parent.verticalCenter
-                    padding: workspacesWidget.widgetPadding
-
-                    Workspaces {
-                        id: workspacesWidget
-                        Layout.fillHeight: true
-                        MouseArea {
-                            // Right-click to toggle overview
-                            anchors.fill: parent
-                            acceptedButtons: Qt.RightButton
-
-                            onPressed: event => {
-                                if (event.button === Qt.RightButton) {
-                                    GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        VerticalBarSeparator {
-            visible: Config.options?.bar.borderless
-        }
-
-        PopoutWrapper {
-            popoutId: "bar.clock"
-            anchors.verticalCenter: parent.verticalCenter
-            implicitWidth: root.centerSideModuleWidth
-            contentComponent: Component {
-                MouseArea {
-                    id: rightCenterGroup
-                    anchors.verticalCenter: parent.verticalCenter
-                    implicitWidth: root.centerSideModuleWidth
-                    implicitHeight: rightCenterGroupContent.implicitHeight
-
-                    onPressed: {
-                        if (root.reminderEditing)
-                            root.cancelReminderEditing();
-                        GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;
-                    }
-
-                    BarGroup {
-                        id: rightCenterGroupContent
-                        anchors.fill: parent
-
-                        ClockWidget {
-                            showDate: (Config.options.bar.verbose && root.useShortenedForm < 2)
-                            Layout.alignment: Qt.AlignVCenter
-                            Layout.fillWidth: true
-                        }
-
-                        UtilButtons {
-                            visible: (Config.options.bar.verbose && root.useShortenedForm === 0)
-                            Layout.alignment: Qt.AlignVCenter
-                        }
-
-                        BatteryIndicator {
-                            visible: (root.useShortenedForm < 2 && Battery.available)
-                            Layout.alignment: Qt.AlignVCenter
-                        }
-                    }
-                }
             }
         }
 
@@ -255,65 +127,59 @@ Item { // Bar content region
         }
 
         BarGroup {
-            id: reminderGroup
+            id: middleCenterGroup
             anchors.verticalCenter: parent.verticalCenter
-            implicitWidth: root.centerSideModuleWidth
-            padding: 6
+            padding: workspacesWidget.widgetPadding
 
-            TextField {
-                id: reminderField
-                Layout.fillWidth: true
-                placeholderText: Translation.tr("Add reminder...")
-                text: root.reminderDraft
-                horizontalAlignment: Text.AlignHCenter
-                selectByMouse: true
-                inputMethodHints: Qt.ImhNoPredictiveText
-                padding: 6
-                color: activeFocus ? Appearance.m3colors.m3onSurface : Appearance.m3colors.m3onSurfaceVariant
-                renderType: Text.NativeRendering
-                selectedTextColor: Appearance.m3colors.m3onSecondaryContainer
-                selectionColor: Appearance.colors.colSecondaryContainer
-                placeholderTextColor: Appearance.m3colors.m3outline
-                background: null
-                cursorVisible: root.reminderEditing && reminderField.activeFocus
+            Workspaces {
+                id: workspacesWidget
+                Layout.fillHeight: true
+                MouseArea {
+                    // Right-click to toggle overview
+                    anchors.fill: parent
+                    acceptedButtons: Qt.RightButton
 
-                onActiveFocusChanged: {
-                    if (activeFocus) {
-                        root.reminderEditing = true;
-                        root.reminderDraft = GlobalStates.barReminderText;
-                        reminderField.selectAll();
-                    } else if (root.reminderEditing) {
-                        root.cancelReminderEditing();
+                    onPressed: event => {
+                        if (event.button === Qt.RightButton) {
+                            GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
+                        }
                     }
                 }
+            }
+        }
 
-                onTextChanged: {
-                    if (root.reminderEditing)
-                        root.reminderDraft = text;
+        VerticalBarSeparator {
+            visible: Config.options?.bar.borderless
+        }
+
+        MouseArea {
+            id: rightCenterGroup
+            anchors.verticalCenter: parent.verticalCenter
+            implicitWidth: root.centerSideModuleWidth
+            implicitHeight: rightCenterGroupContent.implicitHeight
+
+            onPressed: {
+                GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;
+            }
+
+            BarGroup {
+                id: rightCenterGroupContent
+                anchors.fill: parent
+
+                ClockWidget {
+                    showDate: (Config.options.bar.verbose && root.useShortenedForm < 2)
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.fillWidth: true
                 }
 
-                Keys.onReturnPressed: reminderField.commitReminderEditing(event);
-                Keys.onEnterPressed: reminderField.commitReminderEditing(event);
-                Keys.onEscapePressed: reminderField.cancelReminderEditing(event);
-                onAccepted: reminderField.commitReminderEditing();
-
-                function commitReminderEditing(event) {
-                    if (!root.reminderEditing)
-                        return;
-                    root.reminderEditing = false;
-                    GlobalStates.barReminderText = text;
-                    root.reminderDraft = GlobalStates.barReminderText;
-                    if (event)
-                        event.accepted = true;
-                    reminderField.focus = false;
+                UtilButtons {
+                    visible: (Config.options.bar.verbose && root.useShortenedForm === 0)
+                    Layout.alignment: Qt.AlignVCenter
                 }
 
-                function cancelReminderEditing(event) {
-                    if (!root.reminderEditing)
-                        return;
-                    root.cancelReminderEditing();
-                    if (event)
-                        event.accepted = true;
+                BatteryIndicator {
+                    visible: (root.useShortenedForm < 2 && Battery.available)
+                    Layout.alignment: Qt.AlignVCenter
                 }
             }
         }
@@ -335,8 +201,6 @@ Item { // Bar content region
         onScrollUp: Audio.incrementVolume();
         onMovedAway: GlobalStates.osdVolumeOpen = false;
         onPressed: event => {
-            if (root.reminderEditing)
-                root.cancelReminderEditing();
             if (event.button === Qt.LeftButton) {
                 GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;
             }

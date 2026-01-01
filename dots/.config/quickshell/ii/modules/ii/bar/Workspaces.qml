@@ -18,13 +18,9 @@ Item {
     property bool borderless: Config.options.bar.borderless
     readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.QsWindow.window?.screen)
     readonly property Toplevel activeWindow: ToplevelManager.activeToplevel
-
-    readonly property int activeWorkspaceId: Wm.isHyprland
-        ? (monitor?.activeWorkspace?.id ?? 1)
-        : ((Wm.focusedWorkspaceNum > 0 ? Wm.focusedWorkspaceNum : 1))
     
     readonly property int workspacesShown: Config.options.bar.workspaces.shown
-    readonly property int workspaceGroup: Math.floor((activeWorkspaceId - 1) / root.workspacesShown)
+    readonly property int workspaceGroup: Math.floor((monitor?.activeWorkspace?.id - 1) / root.workspacesShown)
     property list<bool> workspaceOccupied: []
     property int widgetPadding: 4
     property int workspaceButtonWidth: 26
@@ -33,7 +29,7 @@ Item {
     property real workspaceIconSizeShrinked: workspaceButtonWidth * 0.55
     property real workspaceIconOpacityShrinked: 1
     property real workspaceIconMarginShrinked: -4
-    property int workspaceIndexInGroup: (activeWorkspaceId - 1) % root.workspacesShown
+    property int workspaceIndexInGroup: (monitor?.activeWorkspace?.id - 1) % root.workspacesShown
 
     property bool showNumbers: false
     Timer {
@@ -62,37 +58,21 @@ Item {
     // Function to update workspaceOccupied
     function updateWorkspaceOccupied() {
         workspaceOccupied = Array.from({ length: root.workspacesShown }, (_, i) => {
-            const workspaceNum = workspaceGroup * root.workspacesShown + i + 1;
-            if (Wm.isHyprland) {
-                return Hyprland.workspaces.values.some(ws => ws.id === workspaceNum);
-            }
-            return Wm.workspaces.some(ws => ws.num === workspaceNum);
+            return Hyprland.workspaces.values.some(ws => ws.id === workspaceGroup * root.workspacesShown + i + 1);
         })
     }
 
     // Occupied workspace updates
     Component.onCompleted: updateWorkspaceOccupied()
     Connections {
-        enabled: Wm.isHyprland
         target: Hyprland.workspaces
         function onValuesChanged() {
             updateWorkspaceOccupied();
         }
     }
     Connections {
-        enabled: Wm.isHyprland
         target: Hyprland
         function onFocusedWorkspaceChanged() {
-            updateWorkspaceOccupied();
-        }
-    }
-    Connections {
-        enabled: !Wm.isHyprland
-        target: Wm
-        function onWorkspacesChanged() {
-            updateWorkspaceOccupied();
-        }
-        function onFocusedWorkspaceNumChanged() {
             updateWorkspaceOccupied();
         }
     }
@@ -107,9 +87,9 @@ Item {
     WheelHandler {
         onWheel: (event) => {
             if (event.angleDelta.y < 0)
-                Wm.workspaceNextOnOutput();
+                Hyprland.dispatch(`workspace r+1`);
             else if (event.angleDelta.y > 0)
-                Wm.workspacePrevOnOutput();
+                Hyprland.dispatch(`workspace r-1`);
         }
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
     }
@@ -119,7 +99,7 @@ Item {
         acceptedButtons: Qt.BackButton
         onPressed: (event) => {
             if (event.button === Qt.BackButton) {
-                Wm.toggleScratchpad();
+                Hyprland.dispatch(`togglespecialworkspace`);
             } 
         }
     }
@@ -142,8 +122,8 @@ Item {
                 implicitWidth: workspaceButtonWidth
                 implicitHeight: workspaceButtonWidth
                 radius: (width / 2)
-                property var previousOccupied: (workspaceOccupied[index-1] && !(!activeWindow?.activated && activeWorkspaceId === index))
-                property var rightOccupied: (workspaceOccupied[index+1] && !(!activeWindow?.activated && activeWorkspaceId === index+2))
+                property var previousOccupied: (workspaceOccupied[index-1] && !(!activeWindow?.activated && monitor?.activeWorkspace?.id === index))
+                property var rightOccupied: (workspaceOccupied[index+1] && !(!activeWindow?.activated && monitor?.activeWorkspace?.id === index+2))
                 property var radiusPrev: previousOccupied ? 0 : (width / 2)
                 property var radiusNext: rightOccupied ? 0 : (width / 2)
 
@@ -153,7 +133,7 @@ Item {
                 bottomRightRadius: radiusNext
                 
                 color: ColorUtils.transparentize(Appearance.m3colors.m3secondaryContainer, 0.4)
-                opacity: (workspaceOccupied[index] && !(!activeWindow?.activated && activeWorkspaceId === index+1)) ? 1 : 0
+                opacity: (workspaceOccupied[index] && !(!activeWindow?.activated && monitor?.activeWorkspace?.id === index+1)) ? 1 : 0
 
                 Behavior on opacity {
                     animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
@@ -218,7 +198,7 @@ Item {
                 property int workspaceValue: workspaceGroup * root.workspacesShown + index + 1
                 implicitHeight: vertical ? Appearance.sizes.verticalBarWidth : Appearance.sizes.barHeight
                 implicitWidth: vertical ? Appearance.sizes.verticalBarWidth : Appearance.sizes.verticalBarWidth
-                onPressed: Wm.workspaceNumber(workspaceValue)
+                onPressed: Hyprland.dispatch(`workspace ${workspaceValue}`)
                 width: vertical ? undefined : workspaceButtonWidth
                 height: vertical ? workspaceButtonWidth : undefined
 
@@ -245,7 +225,7 @@ Item {
                         }
                         text: Config.options?.bar.workspaces.numberMap[button.workspaceValue - 1] || button.workspaceValue
                         elide: Text.ElideRight
-                        color: (activeWorkspaceId == button.workspaceValue) ?
+                        color: (monitor?.activeWorkspace?.id == button.workspaceValue) ? 
                             Appearance.m3colors.m3onPrimary : 
                             (workspaceOccupied[index] ? Appearance.m3colors.m3onSecondaryContainer : 
                                 Appearance.colors.colOnLayer1Inactive)
@@ -265,7 +245,7 @@ Item {
                         width: workspaceButtonWidth * 0.18
                         height: width
                         radius: width / 2
-                        color: (activeWorkspaceId == button.workspaceValue) ?
+                        color: (monitor?.activeWorkspace?.id == button.workspaceValue) ? 
                             Appearance.m3colors.m3onPrimary : 
                             (workspaceOccupied[index] ? Appearance.m3colors.m3onSecondaryContainer : 
                                 Appearance.colors.colOnLayer1Inactive)

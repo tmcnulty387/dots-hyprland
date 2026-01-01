@@ -2,7 +2,6 @@ pragma Singleton
 
 import QtQuick
 import qs.modules.common
-import qs.services
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
@@ -14,7 +13,6 @@ import Quickshell.Hyprland
  */
 Singleton {
     id: root
-    readonly property bool supported: Wm.isHyprland
     property string from: Config.options?.light?.night?.from ?? "19:00" 
     property string to: Config.options?.light?.night?.to ?? "06:30"
     property bool automatic: Config.options?.light?.night?.automatic && (Config?.ready ?? true)
@@ -70,7 +68,6 @@ Singleton {
     onShouldBeOnChanged: ensureState()
     function ensureState() {
         // console.log("[Hyprsunset] Ensuring state:", root.shouldBeOn, "Automatic mode:", root.automatic);
-        if (!root.supported) return;
         if (!root.automatic || root.manualActive !== undefined)
             return;
         if (root.shouldBeOn) {
@@ -83,14 +80,12 @@ Singleton {
     function load() { } // Dummy to force init
 
     function enable() {
-        if (!root.supported) return;
         root.active = true;
         // console.log("[Hyprsunset] Enabling");
         Quickshell.execDetached(["bash", "-c", `pidof hyprsunset || hyprsunset --temperature ${root.colorTemperature}`]);
     }
 
     function disable() {
-        if (!root.supported) return;
         root.active = false;
         // console.log("[Hyprsunset] Disabling");
         Quickshell.execDetached(["bash", "-c", `pkill hyprsunset`]);
@@ -102,7 +97,7 @@ Singleton {
 
     Process {
         id: fetchProc
-        running: root.supported
+        running: true
         command: ["bash", "-c", "hyprctl hyprsunset temperature"]
         stdout: StdioCollector {
             id: stateCollector
@@ -136,8 +131,8 @@ Singleton {
     Connections {
         target: Config.options.light.night
         function onColorTemperatureChanged() {
-            if (!root.supported) return;
             if (!root.active) return;
+            Hyprland.dispatch(`hyprctl hyprsunset temperature ${Config.options.light.night.colorTemperature}`);
             Quickshell.execDetached(["hyprctl", "hyprsunset", "temperature", `${Config.options.light.night.colorTemperature}`]);
         }
     }

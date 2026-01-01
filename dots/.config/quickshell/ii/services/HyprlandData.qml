@@ -12,7 +12,6 @@ import Quickshell.Hyprland
  */
 Singleton {
     id: root
-    readonly property bool supported: (Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") || "").length > 0
     property var windowList: []
     property var addresses: []
     property var windowByAddress: ({})
@@ -65,18 +64,6 @@ Singleton {
     }
 
     function updateAll() {
-        if (!root.supported) {
-            root.windowList = []
-            root.addresses = []
-            root.windowByAddress = ({})
-            root.workspaces = []
-            root.workspaceIds = []
-            root.workspaceById = ({})
-            root.activeWorkspace = null
-            root.monitors = []
-            root.layers = ({})
-            return;
-        }
         updateWindowList();
         updateMonitors();
         updateLayers();
@@ -100,7 +87,6 @@ Singleton {
         target: Hyprland
 
         function onRawEvent(event) {
-            if (!root.supported) return;
             // console.log("Hyprland raw event:", event.name);
             if (["openlayer", "closelayer", "screencast"].includes(event.name)) return;
             updateAll()
@@ -113,11 +99,7 @@ Singleton {
         stdout: StdioCollector {
             id: clientsCollector
             onStreamFinished: {
-                try {
-                    root.windowList = JSON.parse(clientsCollector.text)
-                } catch (e) {
-                    root.windowList = []
-                }
+                root.windowList = JSON.parse(clientsCollector.text)
                 let tempWinByAddress = {};
                 for (var i = 0; i < root.windowList.length; ++i) {
                     var win = root.windowList[i];
@@ -135,11 +117,7 @@ Singleton {
         stdout: StdioCollector {
             id: monitorsCollector
             onStreamFinished: {
-                try {
-                    root.monitors = JSON.parse(monitorsCollector.text);
-                } catch (e) {
-                    root.monitors = []
-                }
+                root.monitors = JSON.parse(monitorsCollector.text);
             }
         }
     }
@@ -150,11 +128,7 @@ Singleton {
         stdout: StdioCollector {
             id: layersCollector
             onStreamFinished: {
-                try {
-                    root.layers = JSON.parse(layersCollector.text);
-                } catch (e) {
-                    root.layers = ({})
-                }
+                root.layers = JSON.parse(layersCollector.text);
             }
         }
     }
@@ -165,11 +139,7 @@ Singleton {
         stdout: StdioCollector {
             id: workspacesCollector
             onStreamFinished: {
-                try {
-                    root.workspaces = JSON.parse(workspacesCollector.text);
-                } catch (e) {
-                    root.workspaces = []
-                }
+                root.workspaces = JSON.parse(workspacesCollector.text);
                 let tempWorkspaceById = {};
                 for (var i = 0; i < root.workspaces.length; ++i) {
                     var ws = root.workspaces[i];
@@ -187,11 +157,7 @@ Singleton {
         stdout: StdioCollector {
             id: activeWorkspaceCollector
             onStreamFinished: {
-                try {
-                    root.activeWorkspace = JSON.parse(activeWorkspaceCollector.text);
-                } catch (e) {
-                    root.activeWorkspace = null
-                }
+                root.activeWorkspace = JSON.parse(activeWorkspaceCollector.text);
             }
         }
     }

@@ -10,7 +10,6 @@ pragma ComponentBehavior: Bound
 Singleton {
     id: root
     property bool barOpen: true
-    property string barReminderText: ""
     property bool crosshairOpen: false
     property bool sidebarLeftOpen: false
     property bool sidebarRightOpen: false
@@ -40,7 +39,6 @@ Singleton {
 
     property real screenZoom: 1
     onScreenZoomChanged: {
-        if (!Wm.isHyprland) return;
         Quickshell.execDetached(["hyprctl", "keyword", "cursor:zoom_factor", root.screenZoom.toString()]);
     }
     Behavior on screenZoom {

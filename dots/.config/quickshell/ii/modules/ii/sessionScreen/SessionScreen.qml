@@ -13,7 +13,7 @@ import Quickshell.Hyprland
 
 Scope {
     id: root
-    property var focusedScreen: Quickshell.screens.find(s => s.name === (Wm.focusedOutputName || Quickshell.screens[0]?.name))
+    property var focusedScreen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name)
 
     Loader {
         id: sessionLoader

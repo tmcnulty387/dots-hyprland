@@ -20,7 +20,6 @@ LockScreen {
     // Push everything down
     property var windowData: []
     function saveWindowPositionAndTile() {
-        if (!Wm.isHyprland) return;
         Quickshell.execDetached(["hyprctl", "keyword", "dwindle:pseudotile", "true"]);
         root.windowData = HyprlandData.windowList.filter(w => (w.floating && w.workspace.id === HyprlandData.activeWorkspace.id));
         root.windowData.forEach(w => {
@@ -30,7 +29,6 @@ LockScreen {
         });
     }
     function restoreWindowPositionAndTile() {
-        if (!Wm.isHyprland) return;
         root.windowData.forEach(w => {
             Hyprland.dispatch(`setfloating address:${w.address}`);
             Hyprland.dispatch(`movewindowpixel exact ${w.at[0]} ${w.at[1]}, address:${w.address}`);
@@ -47,7 +45,6 @@ LockScreen {
             property int verticalMovementDistance: modelData.height
             property int horizontalSqueeze: modelData.width * 0.2
             onShouldPushChanged: {
-                if (!Wm.isHyprland) return;
                 if (shouldPush) {
                     root.saveWindowPositionAndTile();
                     Quickshell.execDetached(["bash", "-c", `hyprctl keyword monitor ${targetMonitorName}, addreserved, ${verticalMovementDistance}, ${-verticalMovementDistance}, ${horizontalSqueeze}, ${horizontalSqueeze}`]);
