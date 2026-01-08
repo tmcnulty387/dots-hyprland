@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# This script copies dots to repo, then commits changes
+
+# Sync updates between dots and repo
+rsync -av --delete ~/dots/.config/ ./dots/.config/
+# Remove unwanted directories
+git clean -f
+# Commit changes
+git add .
+git commit -m "Updated dots"
+git push origin
+# Pull from upstream
+git pull upstream
+echo "Please resolve any merge conflicts, commit, push to origin, and then run setup"
+
