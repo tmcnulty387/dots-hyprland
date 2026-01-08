@@ -12,5 +12,6 @@ git commit -m "Updated dots"
 git push origin
 # Pull from upstream
 git pull upstream
+
 echo "Please resolve any merge conflicts, commit, push to origin, and then run setup"
 
