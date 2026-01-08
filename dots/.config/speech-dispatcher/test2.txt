@@ -1,0 +1,9 @@
+
+
+Computers not only need to be fast; they need to be dependable. Since any physical device can fail, we make systems dependable by including redundant components that can take over when a failure occurs and to help detect failures. We use the tractor-trailer as our icon, since the dual tires on each side of its rear axles allow the truck to continue driving even when one tire fails. (Presumably, the truck driver heads immediately to a repair facility so the flat tire can be fixed, thereby restoring redundancy!)
+
+In the prior edition, we listed an eighth great idea, which was "Designing for Moore's Law." Gordon Moore, one of the founders of Intel, made a remarkable prediction in 1965: integrated circuit resources would double every year. A decade later he amended his prediction to doubling every two years.
+
+His prediction was accurate, and for 50 years Moore's Law shaped computer architecture. As computer designs can take years, the resources available per chip ("transistors", see COD Section 1.5) could easily double or triple between the start and finish of the project. Like a skeet shooter, computer architects had to anticipate where the technology would be when the design finishes rather than design for when it starts.
+
+Alas, no exponential growth can last forever, and Moore's Law is no longer accurate. The slowing of Moore's Law is shocking for computer designers who have long leveraged it. Some don't want to believe it's over despite the substantial evidence to the contrary. Part of the reason is confusion between saying that Moore's prediction of the biannual doubling rate is now incorrect and claiming that semiconductors will no longer improve. Semiconductor technology will continue to improve, but more slowly than in the past. Starting with this edition, we'll discuss the implications of the slowing of Moore's Law, especially in Chapter 6.
