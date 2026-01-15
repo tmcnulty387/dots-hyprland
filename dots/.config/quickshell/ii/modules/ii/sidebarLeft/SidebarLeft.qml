@@ -84,11 +84,11 @@ Scope { // Scope
         active: true
         
         sourceComponent: PanelWindow { // Window
-            id: panelWindow
+            id: sidebarRoot
             visible: GlobalStates.sidebarLeftOpen
             
             property bool extend: false
-            property real sidebarWidth: panelWindow.extend ? Appearance.sizes.sidebarWidthExtended : Appearance.sizes.sidebarWidth
+            property real sidebarWidth: sidebarRoot.extend ? Appearance.sizes.sidebarWidthExtended : Appearance.sizes.sidebarWidth
             property var contentParent: sidebarLeftBackground
 
             function hide() {
@@ -113,17 +113,15 @@ Scope { // Scope
                 item: sidebarLeftBackground
             }
 
-            onVisibleChanged: {
-                if (visible) {
-                    GlobalFocusGrab.addDismissable(panelWindow);
-                } else {
-                    GlobalFocusGrab.removeDismissable(panelWindow);
+            HyprlandFocusGrab { // Click outside to close
+                id: grab
+                windows: [ sidebarRoot ]
+                active: sidebarRoot.visible && !root.pin
+                onActiveChanged: { // Focus the selected tab
+                    if (active) sidebarLeftBackground.children[0].focusActiveItem()
                 }
-            }
-            Connections {
-                target: GlobalFocusGrab
-                function onDismissed() {
-                    panelWindow.hide();
+                onCleared: () => {
+                    if (!active) sidebarRoot.hide()
                 }
             }
 
@@ -138,7 +136,7 @@ Scope { // Scope
                 anchors.left: parent.left
                 anchors.topMargin: Appearance.sizes.hyprlandGapsOut
                 anchors.leftMargin: Appearance.sizes.hyprlandGapsOut
-                width: panelWindow.sidebarWidth - Appearance.sizes.hyprlandGapsOut - Appearance.sizes.elevationMargin
+                width: sidebarRoot.sidebarWidth - Appearance.sizes.hyprlandGapsOut - Appearance.sizes.elevationMargin
                 height: parent.height - Appearance.sizes.hyprlandGapsOut * 2
                 color: Appearance.colors.colLayer0
                 border.width: 1
@@ -151,11 +149,11 @@ Scope { // Scope
 
                 Keys.onPressed: (event) => {
                     if (event.key === Qt.Key_Escape) {
-                        panelWindow.hide();
+                        sidebarRoot.hide();
                     }
                     if (event.modifiers === Qt.ControlModifier) {
                         if (event.key === Qt.Key_O) {
-                            panelWindow.extend = !panelWindow.extend;
+                            sidebarRoot.extend = !sidebarRoot.extend;
                         } else if (event.key === Qt.Key_D) {
                             root.toggleDetach();
                         } else if (event.key === Qt.Key_P) {

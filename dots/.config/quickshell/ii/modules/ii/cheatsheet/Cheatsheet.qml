@@ -54,16 +54,13 @@ Scope { // Scope
                 item: cheatsheetBackground
             }
 
-            Component.onCompleted: {
-                GlobalFocusGrab.addDismissable(cheatsheetRoot);
-            }
-            Component.onDestruction: {
-                GlobalFocusGrab.removeDismissable(cheatsheetRoot);
-            }
-            Connections {
-                target: GlobalFocusGrab
-                function onDismissed() {
-                    cheatsheetRoot.hide();
+            HyprlandFocusGrab { // Click outside to close
+                id: grab
+                windows: [cheatsheetRoot]
+                active: cheatsheetRoot.visible
+                onCleared: () => {
+                    if (!active)
+                        cheatsheetRoot.hide();
                 }
             }
 

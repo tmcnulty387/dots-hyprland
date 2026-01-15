@@ -12,11 +12,11 @@ Scope {
     property int sidebarWidth: Appearance.sizes.sidebarWidth
 
     PanelWindow {
-        id: panelWindow
+        id: sidebarRoot
         visible: GlobalStates.sidebarRightOpen
 
         function hide() {
-            GlobalStates.sidebarRightOpen = false;
+            GlobalStates.sidebarRightOpen = false
         }
 
         exclusiveZone: 0
@@ -32,17 +32,12 @@ Scope {
             bottom: true
         }
 
-        onVisibleChanged: {
-            if (visible) {
-                GlobalFocusGrab.addDismissable(panelWindow);
-            } else {
-                GlobalFocusGrab.removeDismissable(panelWindow);
-            }
-        }
-        Connections {
-            target: GlobalFocusGrab
-            function onDismissed() {
-                panelWindow.hide();
+        HyprlandFocusGrab {
+            id: grab
+            windows: [ sidebarRoot ]
+            active: GlobalStates.sidebarRightOpen
+            onCleared: () => {
+                if (!active) sidebarRoot.hide()
             }
         }
 
@@ -58,14 +53,16 @@ Scope {
             height: parent.height - Appearance.sizes.hyprlandGapsOut * 2
 
             focus: GlobalStates.sidebarRightOpen
-            Keys.onPressed: event => {
+            Keys.onPressed: (event) => {
                 if (event.key === Qt.Key_Escape) {
-                    panelWindow.hide();
+                    sidebarRoot.hide();
                 }
             }
 
             sourceComponent: SidebarRightContent {}
         }
+
+
     }
 
     IpcHandler {
@@ -108,4 +105,5 @@ Scope {
             GlobalStates.sidebarRightOpen = false;
         }
     }
+
 }

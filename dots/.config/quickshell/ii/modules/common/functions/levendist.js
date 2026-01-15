@@ -1,6 +1,6 @@
 // Original code from https://github.com/koeqaife/hyprland-material-you
 // Original code license: GPLv3
-// Translated to Js from Cython with an LLM and reviewed
+// Translated to Js from Cython and reviewed
 
 function min3(a, b, c) {
     return a < b && a < c ? a : b < c ? b : c;

@@ -11,6 +11,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SHELL_CONFIG_FILE="$XDG_CONFIG_HOME/illogical-impulse/config.json"
 MATUGEN_DIR="$XDG_CONFIG_HOME/matugen"
 terminalscheme="$SCRIPT_DIR/terminal/scheme-base.json"
+# Default wallpapers to pair with theme toggles
+LIGHT_MODE_WALLPAPER="$HOME/Pictures/favs/a_snowy_mountain_tops_with_a_grey_sky.jpg"
+DARK_MODE_WALLPAPER="$HOME/Pictures/favs/a_city_at_night_with_lights.jpg"
 
 handle_kde_material_you_colors() {
     # Check if Qt app theming is enabled in config
@@ -161,12 +164,6 @@ switch() {
     type_flag="$3"
     color_flag="$4"
     color="$5"
-
-    # Start Gemini auto-categorization if enabled
-    aiStylingEnabled=$(jq -r '.background.clock.cookie.aiStyling' "$SHELL_CONFIG_FILE")
-    if [[ "$aiStylingEnabled" == "true" ]]; then
-        "$SCRIPT_DIR/../ai/gemini-categorize-wallpaper.sh" "$imgpath" > "$STATE_DIR/user/generated/wallpaper/category.txt" &
-    fi
 
     read scale screenx screeny screensizey < <(hyprctl monitors -j | jq '.[] | select(.focused) | .scale, .x, .y, .height' | xargs)
     cursorposx=$(hyprctl cursorpos -j | jq '.x' 2>/dev/null) || cursorposx=960
@@ -373,6 +370,18 @@ main() {
                 ;;
         esac
     done
+
+    # When toggling theme (mode + --noswitch), use the requested default wallpapers
+    if [[ -n "$mode_flag" && -n "$noswitch_flag" ]]; then
+        case "$mode_flag" in
+            dark)
+                [[ -f "$DARK_MODE_WALLPAPER" ]] && imgpath="$DARK_MODE_WALLPAPER"
+                ;;
+            light)
+                [[ -f "$LIGHT_MODE_WALLPAPER" ]] && imgpath="$LIGHT_MODE_WALLPAPER"
+                ;;
+        esac
+    fi
 
     # If accentColor is set in config, use it
     config_color="$(get_accent_color_from_config)"

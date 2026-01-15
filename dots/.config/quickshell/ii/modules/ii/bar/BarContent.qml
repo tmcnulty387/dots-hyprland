@@ -1,7 +1,9 @@
 import qs.modules.ii.bar.weather
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import qs
 import qs.services
@@ -16,6 +18,41 @@ Item { // Bar content region
     property var brightnessMonitor: Brightness.getMonitorForScreen(screen)
     property real useShortenedForm: (Appearance.sizes.barHellaShortenScreenWidthThreshold >= screen?.width) ? 2 : (Appearance.sizes.barShortenScreenWidthThreshold >= screen?.width) ? 1 : 0
     readonly property int centerSideModuleWidth: (useShortenedForm == 2) ? Appearance.sizes.barCenterSideModuleWidthHellaShortened : (useShortenedForm == 1) ? Appearance.sizes.barCenterSideModuleWidthShortened : Appearance.sizes.barCenterSideModuleWidth
+    readonly property var barWindow: root.QsWindow?.window
+    property string reminderDraft: GlobalStates.barReminderText
+    property bool reminderEditing: false
+
+    Component.onCompleted: reminderDraft = GlobalStates.barReminderText
+
+    function cancelReminderEditing() {
+        reminderDraft = GlobalStates.barReminderText;
+        reminderEditing = false;
+        if (reminderField) {
+            reminderField.deselect();
+            if (reminderField.focus)
+                reminderField.focus = false;
+        }
+    }
+
+    HyprlandFocusGrab {
+        id: reminderFocusGrab
+        windows: barWindow ? [barWindow] : []
+        active: reminderEditing && !!barWindow
+        onCleared: {
+            if (reminderEditing) {
+                root.cancelReminderEditing();
+            }
+        }
+    }
+
+    Connections {
+        target: GlobalStates
+        function onBarReminderTextChanged() {
+            if (!root.reminderEditing) {
+                root.reminderDraft = GlobalStates.barReminderText;
+            }
+        }
+    }
 
     component VerticalBarSeparator: Rectangle {
         Layout.topMargin: Appearance.sizes.baseBarHeight / 3
@@ -63,6 +100,8 @@ Item { // Bar content region
         onScrollUp: root.brightnessMonitor.setBrightness(root.brightnessMonitor.brightness + 0.05)
         onMovedAway: GlobalStates.osdBrightnessOpen = false
         onPressed: event => {
+            if (root.reminderEditing)
+                root.cancelReminderEditing();
             if (event.button === Qt.LeftButton)
                 GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
         }
@@ -80,21 +119,19 @@ Item { // Bar content region
         RowLayout {
             id: leftSectionRowLayout
             anchors.fill: parent
-            spacing: 0
+            spacing: 10
 
             LeftSidebarButton { // Left sidebar button
-                id: leftSidebarButton
                 Layout.alignment: Qt.AlignVCenter
                 Layout.leftMargin: Appearance.rounding.screenRounding
                 colBackground: barLeftSideMouseArea.hovered ? Appearance.colors.colLayer1Hover : ColorUtils.transparentize(Appearance.colors.colLayer1Hover, 1)
             }
 
             ActiveWindow {
-                Layout.leftMargin: 10 + (leftSidebarButton.visible ? 0 : Appearance.rounding.screenRounding)
+                visible: root.useShortenedForm === 0
                 Layout.rightMargin: Appearance.rounding.screenRounding
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                visible: root.useShortenedForm === 0
             }
         }
     }
@@ -113,14 +150,27 @@ Item { // Bar content region
             anchors.verticalCenter: parent.verticalCenter
             implicitWidth: root.centerSideModuleWidth
 
-            Resources {
-                alwaysShowAllResources: root.useShortenedForm === 2
+            PopoutWrapper {
+                popoutId: "bar.resources"
                 Layout.fillWidth: root.useShortenedForm === 2
+                contentComponent: Component {
+                    Resources {
+                        alwaysShowAllResources: root.useShortenedForm === 2
+                        Layout.fillWidth: root.useShortenedForm === 2
+                    }
+                }
             }
 
-            Media {
+            PopoutWrapper {
+                popoutId: "bar.media"
                 visible: root.useShortenedForm < 2
                 Layout.fillWidth: true
+                contentComponent: Component {
+                    Media {
+                        visible: root.useShortenedForm < 2
+                        Layout.fillWidth: true
+                    }
+                }
             }
         }
 
@@ -128,22 +178,27 @@ Item { // Bar content region
             visible: Config.options?.bar.borderless
         }
 
-        BarGroup {
-            id: middleCenterGroup
-            anchors.verticalCenter: parent.verticalCenter
-            padding: workspacesWidget.widgetPadding
+        PopoutWrapper {
+            popoutId: "bar.workspaces"
+            contentComponent: Component {
+                BarGroup {
+                    id: middleCenterGroup
+                    anchors.verticalCenter: parent.verticalCenter
+                    padding: workspacesWidget.widgetPadding
 
-            Workspaces {
-                id: workspacesWidget
-                Layout.fillHeight: true
-                MouseArea {
-                    // Right-click to toggle overview
-                    anchors.fill: parent
-                    acceptedButtons: Qt.RightButton
+                    Workspaces {
+                        id: workspacesWidget
+                        Layout.fillHeight: true
+                        MouseArea {
+                            // Right-click to toggle overview
+                            anchors.fill: parent
+                            acceptedButtons: Qt.RightButton
 
-                    onPressed: event => {
-                        if (event.button === Qt.RightButton) {
-                            GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
+                            onPressed: event => {
+                                if (event.button === Qt.RightButton) {
+                                    GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
+                                }
+                            }
                         }
                     }
                 }
@@ -154,34 +209,111 @@ Item { // Bar content region
             visible: Config.options?.bar.borderless
         }
 
-        MouseArea {
-            id: rightCenterGroup
+        PopoutWrapper {
+            popoutId: "bar.clock"
             anchors.verticalCenter: parent.verticalCenter
             implicitWidth: root.centerSideModuleWidth
-            implicitHeight: rightCenterGroupContent.implicitHeight
+            contentComponent: Component {
+                MouseArea {
+                    id: rightCenterGroup
+                    anchors.verticalCenter: parent.verticalCenter
+                    implicitWidth: root.centerSideModuleWidth
+                    implicitHeight: rightCenterGroupContent.implicitHeight
 
-            onPressed: {
-                GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;
+                    onPressed: {
+                        if (root.reminderEditing)
+                            root.cancelReminderEditing();
+                        GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;
+                    }
+
+                    BarGroup {
+                        id: rightCenterGroupContent
+                        anchors.fill: parent
+
+                        ClockWidget {
+                            showDate: (Config.options.bar.verbose && root.useShortenedForm < 2)
+                            Layout.alignment: Qt.AlignVCenter
+                            Layout.fillWidth: true
+                        }
+
+                        UtilButtons {
+                            visible: (Config.options.bar.verbose && root.useShortenedForm === 0)
+                            Layout.alignment: Qt.AlignVCenter
+                        }
+
+                        BatteryIndicator {
+                            visible: (root.useShortenedForm < 2 && Battery.available)
+                            Layout.alignment: Qt.AlignVCenter
+                        }
+                    }
+                }
             }
+        }
 
-            BarGroup {
-                id: rightCenterGroupContent
-                anchors.fill: parent
+        VerticalBarSeparator {
+            visible: Config.options?.bar.borderless
+        }
 
-                ClockWidget {
-                    showDate: (Config.options.bar.verbose && root.useShortenedForm < 2)
-                    Layout.alignment: Qt.AlignVCenter
-                    Layout.fillWidth: true
+        BarGroup {
+            id: reminderGroup
+            anchors.verticalCenter: parent.verticalCenter
+            implicitWidth: root.centerSideModuleWidth
+            padding: 6
+
+            TextField {
+                id: reminderField
+                Layout.fillWidth: true
+                placeholderText: Translation.tr("Add reminder...")
+                text: root.reminderDraft
+                horizontalAlignment: Text.AlignHCenter
+                selectByMouse: true
+                inputMethodHints: Qt.ImhNoPredictiveText
+                padding: 6
+                color: activeFocus ? Appearance.m3colors.m3onSurface : Appearance.m3colors.m3onSurfaceVariant
+                renderType: Text.NativeRendering
+                selectedTextColor: Appearance.m3colors.m3onSecondaryContainer
+                selectionColor: Appearance.colors.colSecondaryContainer
+                placeholderTextColor: Appearance.m3colors.m3outline
+                background: null
+                cursorVisible: root.reminderEditing && reminderField.activeFocus
+
+                onActiveFocusChanged: {
+                    if (activeFocus) {
+                        root.reminderEditing = true;
+                        root.reminderDraft = GlobalStates.barReminderText;
+                        reminderField.selectAll();
+                    } else if (root.reminderEditing) {
+                        root.cancelReminderEditing();
+                    }
                 }
 
-                UtilButtons {
-                    visible: (Config.options.bar.verbose && root.useShortenedForm === 0)
-                    Layout.alignment: Qt.AlignVCenter
+                onTextChanged: {
+                    if (root.reminderEditing)
+                        root.reminderDraft = text;
                 }
 
-                BatteryIndicator {
-                    visible: (root.useShortenedForm < 2 && Battery.available)
-                    Layout.alignment: Qt.AlignVCenter
+                Keys.onReturnPressed: reminderField.commitReminderEditing(event);
+                Keys.onEnterPressed: reminderField.commitReminderEditing(event);
+                Keys.onEscapePressed: reminderField.cancelReminderEditing(event);
+                onAccepted: reminderField.commitReminderEditing();
+
+                function commitReminderEditing(event) {
+                    if (!root.reminderEditing)
+                        return;
+                    root.reminderEditing = false;
+                    GlobalStates.barReminderText = text;
+                    root.reminderDraft = GlobalStates.barReminderText;
+                    if (event)
+                        event.accepted = true;
+                    reminderField.focus = false;
+                }
+
+                function cancelReminderEditing(event) {
+                    if (!root.reminderEditing)
+                        return;
+                    root.cancelReminderEditing();
+                    if (event)
+                        event.accepted = true;
                 }
             }
         }
@@ -203,6 +335,8 @@ Item { // Bar content region
         onScrollUp: Audio.incrementVolume();
         onMovedAway: GlobalStates.osdVolumeOpen = false;
         onPressed: event => {
+            if (root.reminderEditing)
+                root.cancelReminderEditing();
             if (event.button === Qt.LeftButton) {
                 GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;
             }
