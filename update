@@ -1,0 +1,7 @@
+#!/bin/bash
+
+rsync -av --delete ~/dots/.config ~/dots-repo/dots/.config/
+git clean -f .
+git add .; git commit -m "Updated dots"; git push
+git pull upstream main
+
