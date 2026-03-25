@@ -81,6 +81,7 @@
   "Unknown function call: %1": "Unknown function call: %1",
   "Online | %1's model | Delivers fast, responsive and well-formatted answers. Disadvantages: not very eager to do stuff; might make up unknown function calls": "Online | %1's model | Delivers fast, responsive and well-formatted answers. Disadvantages: not very eager to do stuff; might make up unknown function calls",
   "Volume": "Volume",
+  "Gamma": "Gamma",
   "Medium": "Medium",
   "Copy code": "Copy code",
   "Exceeded max allowed": "Exceeded max allowed",
@@ -604,5 +605,7 @@
   "Recognize music": "Recognize music",
   "Stroke width": "Stroke width",
   "Use varying shapes for password characters": "Use varying shapes for password characters",
-  "Battery full": "Battery full"
+  "Battery full": "Battery full",
+  "Pin": "Pin",
+  "Unpin": "Unpin"
 }
