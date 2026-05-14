@@ -1,0 +1,31 @@
+#!/bin/bash
+set -e
+
+REPO=~/dots-repo
+
+# 1. Grab local updates to dots
+echo "==> Syncing local dotfiles into repo..."
+rsync -av --delete ~/dots/.config/ "$REPO/dots/.config/"
+
+# 2. Remove any dots that weren't previously part of repo
+untracked=$(git -C "$REPO" clean -n .)
+if [[ -n "$untracked" ]]; then
+    echo "==> Untracked files to remove:"
+    echo "$untracked"
+    read -rp "Remove these? [y/N] " confirm
+    [[ "$confirm" == [yY] ]] && git -C "$REPO" clean -f .
+fi
+
+# 3. Save changes and push to origin
+if [[ -n $(git -C "$REPO" status --porcelain) ]]; then
+    git -C "$REPO" add . && git -C "$REPO" commit -m "Updated dots $(date +%Y-%m-%d)" && git -C "$REPO" push
+else
+    echo "==> No local changes to commit."
+fi
+
+# 4. Pull from upstream (may produce merge conflicts)
+set +e
+git -C "$REPO" pull upstream main
+
+echo ""
+echo "==> Resolve any merge conflicts, then run ./apply"

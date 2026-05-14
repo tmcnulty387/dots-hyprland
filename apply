@@ -1,0 +1,32 @@
+#!/bin/bash
+set -e
+
+REPO=~/dots-repo
+DOTS=~/dots
+
+# Check for unresolved conflict markers
+conflicts=$(grep -rl "^<<<<<<< " "$REPO/dots/" 2>/dev/null || true)
+if [[ -n "$conflicts" ]]; then
+    echo "==> Unresolved merge conflicts in:"
+    echo "$conflicts"
+    exit 1
+fi
+
+# Commit and push resolved merge (if anything is staged/modified)
+if [[ -n $(git -C "$REPO" status --porcelain) ]]; then
+    git -C "$REPO" add . && git -C "$REPO" commit -m "Merge upstream $(date +%Y-%m-%d)" && git -C "$REPO" push
+fi
+
+# Install config files
+echo "==> Installing config files..."
+"$REPO/setup" install-files
+
+# Restow
+echo "==> Restowing dotfiles..."
+if ! (cd "$DOTS" && stow --restow .); then
+    echo "==> Fix stow conflicts above, then run:"
+    echo "    hyprctl reload && pkill qs && qs -c ii &"
+    exit 1
+fi
+
+echo "==> Done. Restart Hyprland and Quickshell to apply changes."
