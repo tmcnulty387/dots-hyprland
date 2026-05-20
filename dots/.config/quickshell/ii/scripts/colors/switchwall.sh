@@ -261,19 +261,11 @@ switch() {
 
     # Determine mode if not set
     if [[ -z "$mode_flag" ]]; then
-        auto_mode=$(jq -r '.appearance.wallpaperTheming.autoMode' "$SHELL_CONFIG_FILE" 2>/dev/null)
-        detect_src="${thumbnail:-$imgpath}"
-        if [[ "$auto_mode" == "true" && -n "$detect_src" && -f "$detect_src" ]]; then
-            source "$(eval echo $ILLOGICAL_IMPULSE_VIRTUAL_ENV)/bin/activate"
-            mode_flag=$(python3 "$SCRIPT_DIR/mode_for_image.py" "$detect_src")
-            deactivate
+        current_mode=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null | tr -d "'")
+        if [[ "$current_mode" == "prefer-dark" ]]; then
+            mode_flag="dark"
         else
-            current_mode=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null | tr -d "'")
-            if [[ "$current_mode" == "prefer-dark" ]]; then
-                mode_flag="dark"
-            else
-                mode_flag="light"
-            fi
+            mode_flag="light"
         fi
     fi
 
