@@ -12,11 +12,6 @@ if [[ -n "$conflicts" ]]; then
     exit 1
 fi
 
-# Commit and push resolved merge (if anything is staged/modified)
-if [[ -n $(git -C "$REPO" status --porcelain) ]]; then
-    git -C "$REPO" add . && git -C "$REPO" commit --no-edit && git -C "$REPO" push
-fi
-
 # Install config files
 echo "==> Installing config files..."
 "$REPO/setup" install-files
