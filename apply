@@ -14,7 +14,7 @@ fi
 
 # Commit and push resolved merge (if anything is staged/modified)
 if [[ -n $(git -C "$REPO" status --porcelain) ]]; then
-    git -C "$REPO" add . && git -C "$REPO" commit -m "Merge upstream $(date +%Y-%m-%d)" && git -C "$REPO" push
+    git -C "$REPO" add . && git -C "$REPO" commit --no-edit && git -C "$REPO" push
 fi
 
 # Install config files
