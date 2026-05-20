@@ -1,0 +1,3 @@
+-- Custom window/layer rules
+-- Window rules: https://wiki.hyprland.org/Configuring/Window-Rules/
+-- Workspace rules: https://wiki.hyprland.org/Configuring/Workspace-Rules/
