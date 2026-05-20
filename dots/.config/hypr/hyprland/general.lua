@@ -14,7 +14,7 @@ hl.gesture({
 hl.gesture({
     fingers = 3,
     direction = "pinch",
-    action = "fullscreen"
+    action = "float"
 })
 hl.gesture({
     fingers = 4,
@@ -32,7 +32,7 @@ hl.gesture({
     fingers = 4,
     direction = "down",
     action = function()
-        hl.dispatch(hl.dsp.global("quickshell:overviewWorkspacesToggle"))
+        hl.dispatch(hl.dsp.global("quickshell:overviewWorkspacesClose"))
     end
 })
 
