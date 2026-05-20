@@ -53,6 +53,17 @@ ContentPage {
                     text: Translation.tr("Ignored if terminal theming is not enabled")
                 }
             }
+            ConfigSwitch {
+                buttonIcon: "brightness_auto"
+                text: Translation.tr("Auto dark/light from wallpaper")
+                checked: Config.options.appearance.wallpaperTheming.autoMode
+                onCheckedChanged: {
+                    Config.options.appearance.wallpaperTheming.autoMode = checked;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Automatically switch dark/light mode based on wallpaper brightness")
+                }
+            }
         }
 
         ConfigSpinBox {
