@@ -1,7 +1,7 @@
 groups=(illogical-impulse)
 pkgname=illogical-impulse-kde
 pkgver=1.0
-pkgrel=3
+pkgrel=4
 pkgdesc='Illogical Impulse KDE Dependencies'
 arch=(any)
 license=(None)
@@ -11,6 +11,5 @@ depends=(
   networkmanager
   plasma-nm
   polkit-kde-agent
-  dolphin
   systemsettings
 )
