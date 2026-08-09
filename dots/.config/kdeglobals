@@ -22,65 +22,65 @@ IntensityEffect=0
 
 [Colors:Button]
 BackgroundAlternate=#e4e2e3
-BackgroundNormal=#eae8e8
-DecorationFocus=#55606a
-DecorationHover=#55606a
-ForegroundActive=#1b1c1d
-ForegroundInactive=#757475
+BackgroundNormal=#e9e8e8
+DecorationFocus=#515e66
+DecorationHover=#515e66
+ForegroundActive=#1b1c1c
+ForegroundInactive=#747475
 ForegroundLink=#006496
 ForegroundNegative=#bf0031
 ForegroundNeutral=#964400
-ForegroundNormal=#1b1c1d
+ForegroundNormal=#1b1c1c
 ForegroundPositive=#006a36
 ForegroundVisited=#9900cf
 
 [Colors:Complementary]
-BackgroundAlternate=#fbf9fa
+BackgroundAlternate=#fbf9f9
 BackgroundNormal=#eceaeb
-DecorationFocus=#55606a
-DecorationHover=#55606a
+DecorationFocus=#515e66
+DecorationHover=#515e66
 ForegroundActive=#303031
-ForegroundInactive=#757475
+ForegroundInactive=#747475
 ForegroundLink=#006496
 ForegroundNegative=#bf0031
 ForegroundNeutral=#964400
-ForegroundNormal=#464748
+ForegroundNormal=#464747
 ForegroundPositive=#006a36
 ForegroundVisited=#9900cf
 
 [Colors:Header]
 BackgroundAlternate=#eceaeb
 BackgroundNormal=#eceaeb
-DecorationFocus=#55606a
-DecorationHover=#55606a
+DecorationFocus=#515e66
+DecorationHover=#515e66
 ForegroundActive=#303031
-ForegroundInactive=#757475
+ForegroundInactive=#747475
 ForegroundLink=#006496
 ForegroundNegative=#bf0031
 ForegroundNeutral=#964400
-ForegroundNormal=#464748
+ForegroundNormal=#464747
 ForegroundPositive=#006a36
 ForegroundVisited=#9900cf
 
 [Colors:Header][Inactive]
-BackgroundAlternate=#eceaeb
+BackgroundAlternate=#e4e2e3
 BackgroundNormal=#eceaeb
-DecorationFocus=#55606a
-DecorationHover=#55606a
-ForegroundActive=#303031
-ForegroundInactive=#757475
+DecorationFocus=#515e66
+DecorationHover=#515e66
+ForegroundActive=#006496
+ForegroundInactive=#747475
 ForegroundLink=#006496
 ForegroundNegative=#bf0031
 ForegroundNeutral=#964400
-ForegroundNormal=#464748
+ForegroundNormal=#464747
 ForegroundPositive=#006a36
 ForegroundVisited=#9900cf
 
 [Colors:Selection]
-BackgroundAlternate=#55606a
-BackgroundNormal=#55606a
-DecorationFocus=#55606a
-DecorationHover=#575d63
+BackgroundAlternate=#515e66
+BackgroundNormal=#515e66
+DecorationFocus=#515e66
+DecorationHover=#565d62
 ForegroundActive=#ffffff
 ForegroundInactive=#ffffff
 ForegroundLink=#004b73
@@ -93,48 +93,48 @@ ForegroundVisited=#74009f
 [Colors:Tooltip]
 BackgroundAlternate=#e4e2e3
 BackgroundNormal=#eceaeb
-DecorationFocus=#55606a
-DecorationHover=#55606a
-ForegroundActive=#1b1c1d
-ForegroundInactive=#757475
+DecorationFocus=#515e66
+DecorationHover=#515e66
+ForegroundActive=#1b1c1c
+ForegroundInactive=#747475
 ForegroundLink=#006496
 ForegroundNegative=#bf0031
 ForegroundNeutral=#964400
-ForegroundNormal=#1b1c1d
+ForegroundNormal=#1b1c1c
 ForegroundPositive=#006a36
 ForegroundVisited=#9900cf
 
 [Colors:View]
 BackgroundAlternate=#eceaeb
-BackgroundNormal=#fbf9fa
-DecorationFocus=#55606a
-DecorationHover=#dae0e7
+BackgroundNormal=#fbf9f9
+DecorationFocus=#515e66
+DecorationHover=#dae1e7
 ForegroundActive=#303031
-ForegroundInactive=#757475
+ForegroundInactive=#747475
 ForegroundLink=#006496
 ForegroundNegative=#bf0031
 ForegroundNeutral=#964400
-ForegroundNormal=#1b1c1d
+ForegroundNormal=#1b1c1c
 ForegroundPositive=#006a36
 ForegroundVisited=#9900cf
 
 [Colors:Window]
 BackgroundAlternate=#e4e2e3
 BackgroundNormal=#eceaeb
-DecorationFocus=#55606a
-DecorationHover=#55606a
+DecorationFocus=#515e66
+DecorationHover=#515e66
 ForegroundActive=#006496
-ForegroundInactive=#757475
+ForegroundInactive=#747475
 ForegroundLink=#006496
 ForegroundNegative=#bf0031
 ForegroundNeutral=#964400
-ForegroundNormal=#464748
+ForegroundNormal=#464747
 ForegroundPositive=#006a36
 ForegroundVisited=#9900cf
 
 [General]
 ColorScheme=MaterialYouLight
-ColorSchemeHash=a7a72d8da51bcf32f8148fe1ff81bcd22c22e3f9
+ColorSchemeHash=504f77c7eb1042fe628539d78637c8e74f03e8e2
 LastUsedCustomAccentColor=184,117,220
 TerminalApplication=kitty -1
 XftHintStyle=hintslight
@@ -155,7 +155,7 @@ widgetStyle=Darkly
 
 [KFileDialog Settings]
 Allow Expansion=false
-Automatically select filename extension=true
+Automatically select filename extension=false
 Breadcrumb Navigation=true
 Decoration position=2
 Show Full Path=false
@@ -177,7 +177,7 @@ Theme=freedesktop
 activeBackground=228,226,227
 activeBlend=227,229,231
 activeFont=Google Sans Flex,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium
-activeForeground=27,28,29
-inactiveBackground=218,224,231
+activeForeground=27,28,28
+inactiveBackground=218,225,231
 inactiveBlend=239,240,241
-inactiveForeground=70,71,72
+inactiveForeground=70,71,71

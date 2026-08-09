@@ -216,9 +216,9 @@ Singleton {
                 property JsonObject parallax: JsonObject {
                     property bool vertical: false
                     property bool autoVertical: false
-                    property bool enableWorkspace: false
-                    property real workspaceZoom: 1.07 // Relative to wallpaper size
-                    property bool enableSidebar: false
+                    property bool enableWorkspace: true
+                    property real workspaceZoom: 1.07 // Relative to your screen, not wallpaper size
+                    property bool enableSidebar: true
                     property real widgetsFactor: 1.2
                 }
             }
@@ -399,10 +399,6 @@ Singleton {
 
             property JsonObject notifications: JsonObject {
                 property int timeout: 7000
-                property JsonObject monitor: JsonObject {
-                    property bool enable: false
-                    property string name: "" // Name of the monitor to show notifications on, like "eDP-1". Find out with 'hyprctl monitors' command
-                }
             }
 
             property JsonObject osd: JsonObject {
